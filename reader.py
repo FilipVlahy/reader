@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-from mailbox import NotEmptyError
 import socket
 import os
 import sys
 import signal
-import hashlib
 
 def header_split(header):
 
