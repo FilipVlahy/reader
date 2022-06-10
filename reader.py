@@ -109,6 +109,85 @@ def method_length(headers):
 
     return status_code,status_message,reply_header,reply_content
 
+def method_search(headers):
+
+    status_code=100
+    status_message='OK'
+
+    reply_header=''
+    reply_content=[]
+
+    dir = os.listdir(f'data')
+    dir = sorted(dir,reverse=True)
+    string = headers["String"]
+
+    if string.startswith('"') and string.endswith('"'):
+        string_cutted = string[1:-1]
+
+        try:
+            for filename in dir:
+                try:
+                    with open(f'data/{filename}','r') as file:
+                        text=file.read()
+                        if string_cutted in text:
+                            reply_content.append(filename)
+
+                except OSError:
+                    continue
+
+            reply_header = f'Lines:{len(reply_content)}\n'
+
+        except ValueError:
+            status_code,status_message=(200,'Bad request')
+        except KeyError:
+            status_code,status_message=(200,'Bad request')
+
+    else:
+        status_code,status_message=(200,'Bad request')
+
+
+    return status_code,status_message,reply_header,reply_content
+
+
+
+def method_select(headers):
+
+    status_code=100
+    status_message='OK'
+
+    reply_header=''
+    reply_content=[]
+
+    string = headers["String"]
+
+    if string.startswith('"') and string.endswith('"'):
+        string_cutted = string[1:-1]
+
+        try:
+            with open(f'data/{headers["File"]}','r') as file:
+                text=file.readlines()
+                for line in text:
+                    if string_cutted in line:
+                        reply_content.append(line)
+
+                reply_header = f'Lines:{len(reply_content)}\n'
+
+        except ValueError:
+            status_code,status_message=(200,'Bad request')
+        except KeyError:
+            status_code,status_message=(200,'Bad request')
+        except FileNotFoundError:
+            status_code,status_message=(202,'No such file')
+        except OSError:
+            status_code,status_message=(203,'Read error')
+    
+    else:
+        status_code,status_message=(200,'Bad request')
+
+
+    return status_code,status_message,reply_header,reply_content
+
+
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind(('',9999))
@@ -162,6 +241,10 @@ while True:
                 status_code,status_message,reply_header,reply_content=method_ls()
             elif method=='LENGTH':
                 status_code,status_message,reply_header,reply_content=method_length(headers)
+            elif method=='SEARCH':
+                status_code,status_message,reply_header,reply_content=method_search(headers)
+            elif method=='SELECT':
+                status_code,status_message,reply_header,reply_content=method_select(headers)
             else:
                 status_code,status_message=(204,'Unknown method')
 
