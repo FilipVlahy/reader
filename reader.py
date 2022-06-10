@@ -159,31 +159,28 @@ def method_select(headers):
     reply_content=[]
 
     string = headers["String"]
+    try:
+        if string.startswith('"') and string.endswith('"'):
+            string_cutted = string[1:-1]
 
-    if string.startswith('"') and string.endswith('"'):
-        string_cutted = string[1:-1]
-
-        try:
             with open(f'data/{headers["File"]}','r') as file:
                 text=file.readlines()
                 for line in text:
                     if string_cutted in line:
-                        reply_content.append(line)
-
-                reply_header = f'Lines:{len(reply_content)}\n'
-
-        except ValueError:
+                        reply_content.append(line.strip())
+            reply_header = f'Lines:{len(reply_content)}\n'
+        
+        else:
             status_code,status_message=(200,'Bad request')
-        except KeyError:
-            status_code,status_message=(200,'Bad request')
-        except FileNotFoundError:
-            status_code,status_message=(202,'No such file')
-        except OSError:
-            status_code,status_message=(203,'Read error')
-    
-    else:
+
+    except ValueError:
         status_code,status_message=(200,'Bad request')
-
+    except KeyError:
+        status_code,status_message=(200,'Bad request')
+    except FileNotFoundError:
+        status_code,status_message=(202,'No such file')
+    except OSError:
+        status_code,status_message=(203,'Read error')
 
     return status_code,status_message,reply_header,reply_content
 
